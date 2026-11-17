@@ -4,6 +4,8 @@ Skill para planejar e produzir vídeos narrativos por cenas com continuidade vis
 
 Ela integra fluxos com OpenRouter ou fal.ai para referências visuais, Seedance para vídeo, ElevenLabs para vozes, Mirelo para efeitos e ambiência, Sync Labs para lip sync e Hyperframes para montagem.
 
+O modelo visual padrão no OpenRouter é o Nano Banana 2 (`google/gemini-3.1-flash-image`). Ele pode ser substituído em `project.json` ou por `--model` sem fallback silencioso.
+
 ## Instalação rápida
 
 Com o instalador aberto de Agent Skills:
@@ -47,6 +49,8 @@ Em uma conversa com o agente, peça algo como:
 > Use $criacao-de-video-ia para transformar minha ideia em um vídeo por cenas, com referências, vozes, lip sync e montagem.
 
 Consulte [SKILL.md](SKILL.md) para o fluxo completo e [references/operations.md](references/operations.md) para os comandos e a recuperação de jobs.
+
+Há um prompt inicial para cartoon infantil gospel em [examples/cartoon-infantil-gospel.md](examples/cartoon-infantil-gospel.md).
 
 ## Requisitos
 
