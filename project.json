@@ -1,0 +1,13 @@
+{
+  "project_root": ".",
+  "env_file": ".env",
+  "state_dir": ".video-ai/projects",
+  "models": {
+    "openrouter_image": "bytedance-seed/seedream-5-0-pro",
+    "seedream": "bytedance/seedream/v5/pro/text-to-image",
+    "seedance": "bytedance/seedance-2.5/reference-to-video",
+    "mirelo": "mirelo-ai/sfx2.0/video-to-audio",
+    "elevenlabs": "eleven_v4",
+    "sync": "sync-3"
+  }
+}

@@ -1,0 +1,6 @@
+.env
+.video-ai/
+__pycache__/
+*.py[cod]
+.DS_Store
+

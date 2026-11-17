@@ -1,0 +1,4 @@
+interface:
+  display_name: "Criação de Vídeo IA"
+  short_description: "Produz vídeos por cenas com aprovações"
+  default_prompt: "Use $criacao-de-video-ia para transformar minha ideia em um vídeo por cenas, com referências, vozes, lip sync e montagem."
