@@ -185,6 +185,18 @@ def validate_plan(plan: object) -> dict:
     return plan
 
 
+def validate_scene(scene: object) -> dict:
+    if not isinstance(scene, dict) or not scene.get("id"):
+        raise StateError("Cena precisa ser um objeto com id")
+    try:
+        duration = float(scene["duration_seconds"])
+    except (KeyError, TypeError, ValueError) as exc:
+        raise StateError(f"Duração inválida na cena {scene.get('id')}") from exc
+    if duration <= 0:
+        raise StateError(f"Duração precisa ser positiva na cena {scene['id']}")
+    return scene
+
+
 def cmd_set_plan(args: argparse.Namespace) -> int:
     plan = validate_plan(load_json_file(args.file))
     plan_path = safe_output_path(args.project, "plans/plan.json")
@@ -199,6 +211,76 @@ def cmd_set_plan(args: argparse.Namespace) -> int:
         }
         state.setdefault("history", []).append({"at": now_iso(), "event": "plan_updated", "hash": state["plan_hash"]})
     emit({"saved": str(plan_path), "scenes": len(plan["scenes"])})
+    return 0
+
+
+def cmd_update_scene(args: argparse.Namespace) -> int:
+    patch = load_json_file(args.file)
+    if not isinstance(patch, dict) or not patch.get("id"):
+        raise StateError("Atualização de cena precisa ser um objeto com id")
+    scene_id = str(patch["id"])
+    invalidated: list[str] = []
+    plan_path = safe_output_path(args.project, "plans/plan.json")
+    with locked_state(args.project) as state:
+        plan = state.get("plan")
+        if not isinstance(plan, dict) or not isinstance(plan.get("scenes"), list):
+            raise StateError("Projeto ainda não possui plano")
+        index = next((i for i, scene in enumerate(plan["scenes"]) if str(scene.get("id")) == scene_id), None)
+        if index is None:
+            raise StateError(f"Cena desconhecida: {scene_id}")
+        unresolved = [
+            action["id"]
+            for action in state.get("actions", {}).values()
+            if action.get("scene") == scene_id
+            and action.get("status") in {"prepared", "submitted", "in_progress", "submission_unknown"}
+        ]
+        if unresolved:
+            raise StateError(
+                "Cena possui ações ainda ativas ou incertas; consulte e reconcilie antes de atualizá-la: "
+                + ", ".join(unresolved)
+            )
+        replacement = validate_scene({**plan["scenes"][index], **patch})
+        plan["scenes"][index] = replacement
+        state["plan_hash"] = canonical_hash(plan)
+        atomic_write_json(plan_path, plan)
+        affected_kinds = {
+            "visual": {"reference_image", "seedream", "scene_video", "seedance", "mirelo", "lip_sync"},
+            "dialogue": {"tts", "scene_video", "seedance", "mirelo", "lip_sync"},
+            "sfx": {"mirelo"},
+        }.get(args.change_type)
+        for action in state.get("actions", {}).values():
+            kind_matches = affected_kinds is None or action.get("kind") in affected_kinds
+            if (
+                action.get("scene") == scene_id
+                and action.get("kind") != "asset_upload"
+                and kind_matches
+                and action.get("status") not in {"stale", "failed"}
+            ):
+                action["status"] = "stale"
+                action["stale_reason"] = args.reason
+                action["updated_at"] = now_iso()
+                invalidated.append(action["id"])
+        state.setdefault("approvals", {})["review"] = {"approved": False}
+        state.setdefault("history", []).append({
+            "at": now_iso(),
+            "event": "scene_updated",
+            "scene": scene_id,
+            "reason": args.reason,
+            "change_type": args.change_type,
+            "actions": invalidated,
+            "plan_hash": state["plan_hash"],
+        })
+        preserved_gates = {
+            gate: bool(state.get("approvals", {}).get(gate, {}).get("approved"))
+            for gate in ("references", "script")
+        }
+    emit({
+        "scene": scene_id,
+        "saved": str(plan_path),
+        "change_type": args.change_type,
+        "invalidated_actions": invalidated,
+        "preserved_gates": preserved_gates,
+    })
     return 0
 
 
@@ -273,13 +355,13 @@ def _openrouter_cost_summary(catalog: dict, resolution: str) -> dict:
 
 def paid_preview(service: str, kind: str, scene: str, model: str, cost: object) -> None:
     emit({
-        "authorization_required": True,
+        "submission_blocked_without_yes_paid": True,
         "service": service,
         "operation": kind,
         "scene": scene,
         "model": model,
         "cost_information": cost,
-        "next_step": "Execute novamente com --yes-paid somente após autorização explícita.",
+        "next_step": "Se o pedido ativo já solicitou esta geração exata, execute agora com --yes-paid sem pedir nova confirmação. Caso contrário, peça autorização.",
     })
 
 
@@ -599,7 +681,7 @@ def cmd_tts(args: argparse.Namespace) -> int:
     model = args.model or state.get("models", {}).get("elevenlabs", "eleven_v4")
     current_voice = state.get("voice_map", {}).get(args.character)
     if current_voice and current_voice != args.voice_id and not args.replace_voice:
-        raise StateError(f"Personagem {args.character} já usa outro voice_id; use --replace-voice após aprovação")
+        raise StateError(f"Personagem {args.character} já usa outro voice_id; use --replace-voice quando o pedido ativo solicitar explicitamente a troca")
     if not args.yes_paid:
         paid_preview("ElevenLabs", "tts", args.scene, model, {"available": False, "basis": "plano/créditos da conta"})
         return 3
@@ -807,6 +889,13 @@ def build_parser() -> argparse.ArgumentParser:
     plan.add_argument("--project", required=True)
     plan.add_argument("--file", required=True)
     plan.set_defaults(func=cmd_set_plan)
+
+    update_scene = sub.add_parser("update-scene", help="Atualiza uma cena e invalida somente seus derivados")
+    update_scene.add_argument("--project", required=True)
+    update_scene.add_argument("--file", required=True)
+    update_scene.add_argument("--reason", required=True)
+    update_scene.add_argument("--change-type", choices=("visual", "dialogue", "sfx", "all"), default="all")
+    update_scene.set_defaults(func=cmd_update_scene)
 
     approve = sub.add_parser("approve", help="Registra uma aprovação")
     approve.add_argument("--project", required=True)

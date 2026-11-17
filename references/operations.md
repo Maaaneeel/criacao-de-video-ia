@@ -14,9 +14,19 @@
 - `submission_unknown`: a conexão caiu depois do início do envio; não reenvie automaticamente.
 - `stale`: uma alteração invalidou essa saída; o arquivo original continua preservado.
 
+## Autorização sem confirmação duplicada
+
+Um pedido inequívoco de geração autoriza uma tentativa do escopo descrito. Se o mesmo pedido indicar arquivos de referência, autoriza também o envio exatamente desses arquivos ao provedor escolhido ou padrão do projeto. Comunique escopo, provedor, modelo, referências e custo como informação e prossiga com `--yes-paid`; não transforme esse aviso em uma nova pergunta.
+
+Arquivo meramente anexado, descoberto no projeto ou não indicado pelo usuário não está autorizado como referência. Não envie arquivos extras. Aprovações editoriais podem ser dadas em linguagem natural e devem ser registradas sem exigir uma fórmula específica.
+
+O modo sem `--yes-paid` existe para orçamento/preview ou quando ainda não há pedido de geração. Se o usuário já disse “pode gerar” ou equivalente, não execute primeiro o dry-run.
+
 ## Retomada
 
 Para fal.ai, consulte os `status_url` e `response_url` devolvidos na submissão. Para Sync, consulte `/v2/generate/{id}` e reutilize o mesmo `Idempotency-Key` somente se a submissão precisar ser reconciliada. ElevenLabs TTS é resposta direta: se o envio ficar incerto, peça decisão antes de gerar de novo.
+
+Falha local ou validação anterior ao POST pode ser corrigida sem nova autorização. Após request/job ID, `submission_unknown` ou qualquer resultado possivelmente cobrado, consulte e reconcilie a ação existente. Polling, download e reutilização do resultado não são novas gerações e não exigem nova autorização.
 
 Arquivos locais destinados ao Sync passam por `sync-upload`: o estado persiste somente caminho, hash e `asset_id`; nunca salve a URL assinada. Reutilize o mesmo asset em retomadas.
 

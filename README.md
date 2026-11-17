@@ -64,6 +64,7 @@ Há um prompt inicial para cartoon infantil gospel em [examples/cartoon-infantil
 - As chaves são lidas somente do `.env` do projeto.
 - A skill não inclui credenciais nem resultados autenticados.
 - Gerações pagas exigem um pedido explícito para o lote e registram o job antes do envio.
+- “Pode gerar” e equivalentes já autorizam a tentativa pedida; referências locais indicadas no mesmo pedido podem ser enviadas ao provedor configurado sem uma confirmação duplicada.
 - Em resultados incertos, o job existente é consultado antes de qualquer nova cobrança.
 
 ## Teste local

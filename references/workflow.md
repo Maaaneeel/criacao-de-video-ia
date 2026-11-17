@@ -8,7 +8,7 @@ Antes de gerar qualquer mídia, registre para cada cena: intenção, ação vis�
 
 ## 2. Bíblia visual e referências
 
-Defina personagens (traços estáveis, roupa, acessórios), cenários, paleta, luz, lente/câmera e estilo. Gere folhas de referência com o provedor escolhido pelo usuário. OpenRouter usa sua Image API dedicada; fal.ai usa a fila do modelo configurado. As imagens são exploratórias até a Aprovação 1. Depois dela, marque os arquivos aprovados no plano; não use rascunhos rejeitados como referência e nunca faça fallback silencioso entre provedores.
+Defina personagens (traços estáveis, roupa, acessórios), cenários, paleta, luz, lente/câmera e estilo. Gere folhas de referência com o provedor escolhido pelo usuário. OpenRouter usa sua Image API dedicada; fal.ai usa a fila do modelo configurado. As imagens geradas pelo fluxo são exploratórias até a Aprovação 1. Uma imagem que o usuário forneceu e indicou explicitamente para uma cena já está aprovada como entrada daquela geração. Depois da aprovação, marque os arquivos aprovados no plano; não use rascunhos rejeitados como referência e nunca faça fallback silencioso entre provedores.
 
 ## 3. Roteiro final
 
@@ -41,3 +41,5 @@ Renderize com qualidade `delivery`, confirme arquivo não vazio e valide duraç�
 ## Refação localizada
 
 Uma mudança visual invalida Seedance, Mirelo, Sync e montagem daquela cena. Uma mudança de fala invalida ElevenLabs, duração, Seedance quando a ação/timing mudar, Sync e montagem. Uma mudança apenas de SFX invalida Mirelo e montagem. Nunca invalide cenas independentes sem dependência real.
+
+Quando o usuário pedir uma correção localizada e também disser para gerar, use `update-scene` com o tipo correto da mudança, preserve as aprovações globais de referências e roteiro, reabra apenas a revisão e gere a nova tentativa autorizada. Não passe o plano inteiro por `set-plan`, pois isso reinicia todos os gates. Uma mudança `visual` preserva TTS; `dialogue` invalida voz e sincronização; `sfx` invalida apenas o áudio gerado; `all` é a opção conservadora.
