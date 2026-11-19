@@ -6,6 +6,8 @@ Ela integra fluxos com OpenRouter ou fal.ai para referências visuais, Seedance 
 
 O modelo visual padrão no OpenRouter é o Nano Banana 2 (`google/gemini-3.1-flash-image`). Ele pode ser substituído em `project.json` ou por `--model` sem fallback silencioso.
 
+Para vídeos infantis cristãos com os personagens do Gospelzim e Wan como gerador obrigatório, use a skill complementar [gospelzim-wan-video](gospelzim-wan-video/SKILL.md).
+
 ## Instalação rápida
 
 Com o instalador aberto de Agent Skills:

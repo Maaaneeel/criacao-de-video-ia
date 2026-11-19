@@ -6,6 +6,7 @@
     "openrouter_image": "google/gemini-3.1-flash-image",
     "seedream": "bytedance/seedream/v5/pro/text-to-image",
     "seedance": "bytedance/seedance-2.5/reference-to-video",
+    "wan": "alibaba/wan-3.0/reference-to-video",
     "mirelo": "mirelo-ai/sfx2.0/video-to-audio",
     "elevenlabs": "eleven_v4",
     "sync": "sync-3"

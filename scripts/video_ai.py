@@ -244,8 +244,8 @@ def cmd_update_scene(args: argparse.Namespace) -> int:
         state["plan_hash"] = canonical_hash(plan)
         atomic_write_json(plan_path, plan)
         affected_kinds = {
-            "visual": {"reference_image", "seedream", "scene_video", "seedance", "mirelo", "lip_sync"},
-            "dialogue": {"tts", "scene_video", "seedance", "mirelo", "lip_sync"},
+            "visual": {"reference_image", "seedream", "scene_video", "seedance", "wan", "mirelo", "lip_sync"},
+            "dialogue": {"tts", "scene_video", "seedance", "wan", "mirelo", "lip_sync"},
             "sfx": {"mirelo"},
         }.get(args.change_type)
         for action in state.get("actions", {}).values():
@@ -590,7 +590,7 @@ def cmd_fal_submit(args: argparse.Namespace) -> int:
     if not isinstance(payload, dict):
         raise StateError("Payload fal.ai precisa ser um objeto JSON")
     state = read_state(args.project)
-    if args.kind in {"seedance", "mirelo"}:
+    if args.kind in {"seedance", "wan", "mirelo"}:
         require_gate(state, "script")
     model = args.model or state.get("models", {}).get(args.kind)
     if not model:
@@ -659,7 +659,7 @@ def cmd_fal_poll(args: argparse.Namespace) -> int:
 
     result = fal_get(action["response_url"])
     urls = media_urls(result)
-    output_group = {"seedream": "references", "seedance": "clips", "mirelo": "sfx"}.get(action["kind"], "clips")
+    output_group = {"seedream": "references", "seedance": "clips", "wan": "clips", "mirelo": "sfx"}.get(action["kind"], "clips")
     outputs = []
     for index, url in enumerate(urls, 1):
         base = safe_output_path(args.project, f"{output_group}/{safe_name(action.get('scene') or 'global')}-{args.action}-{index}")
@@ -941,7 +941,7 @@ def build_parser() -> argparse.ArgumentParser:
     fal_submit_parser = sub.add_parser("fal-submit", help="Prepara ou submete uma geração fal.ai")
     fal_submit_parser.add_argument("--project", required=True)
     fal_submit_parser.add_argument("--scene", required=True)
-    fal_submit_parser.add_argument("--kind", required=True, choices=("seedream", "seedance", "mirelo"))
+    fal_submit_parser.add_argument("--kind", required=True, choices=("seedream", "seedance", "wan", "mirelo"))
     fal_submit_parser.add_argument("--payload", required=True)
     fal_submit_parser.add_argument("--model")
     fal_submit_parser.add_argument("--yes-paid", action="store_true")

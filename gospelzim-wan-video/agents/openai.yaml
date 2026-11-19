@@ -1,0 +1,4 @@
+interface:
+  display_name: "Gospelzim com Wan"
+  short_description: "Cria cenas Gospelzim infantis com Wan e continuidade de personagens"
+  default_prompt: "Use $gospelzim-wan-video para planejar ou produzir um vídeo infantil cristão do Gospelzim em cenas independentes usando Wan."
